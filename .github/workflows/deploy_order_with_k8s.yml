@@ -43,7 +43,21 @@ jobs:
           -f ./2.ordersystem/Dockerfile ./2.ordersystem
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
-      - name: eks kubectl apply
+      - name: restart backend deployment
         run: |
-          kubectl rollout restart deployment ordersystem-backend -n soldesk
+          kubectl get nodes
+
+          kubectl get deployment ordersystem-backend \
+            -n soldesk \
+            -o jsonpath='{.spec.template.spec.containers[0].image}'
+
+          echo ""
+
+          kubectl rollout restart deployment/ordersystem-backend -n soldesk
+
+          kubectl rollout status deployment/ordersystem-backend \
+            -n soldesk \
+            --timeout=300s
+
+          kubectl get pods -n soldesk
         # kubectl apply -f ./2.ordersystem/k8s/k8s-ordersystem/depl_svc.yml
