@@ -9,6 +9,7 @@ metadata:
   namespace: soldesk
   annotations:
     cert-manager.io/cluster-issuer: my-issuer
+    nginx.ingress.kubernetes.io/proxy-body-size: "20m"
 spec:
   ingressClassName: nginx
   tls:
