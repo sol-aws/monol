@@ -6,13 +6,13 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: ordersystem-backend-hpa
   namespace: soldesk
-spec: 
+spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
     name: ordersystem-backend
   minReplicas: 2
-  maxReplicas: 10
+  maxReplicas: 5
   targetCPUUtilizationPercentage: 30
 
 # 메트릭 서버와 HPA를 통한 pod 현황 조회
