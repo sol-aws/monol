@@ -24,7 +24,7 @@ public class Product extends BaseTimeEntity {
     private Integer stockQuantity;
 
     // S3에 저장된 실제 이미지 파일의 Object Key만 DB에 저장한다.
-    // S3 URL은 조회 시점에 Presigned URL로 생성한다.
+    // 상품 조회 시 Public S3 URL로 변환해서 Frontend에 반환한다.
     private String imageKey;
 
     @ManyToOne(fetch = FetchType.LAZY)

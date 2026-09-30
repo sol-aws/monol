@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Soldesk Market</title>
+  <meta name="description" content="Spring Boot + EKS + RDS + S3 모놀리식 쇼핑몰 실습" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="nav-shell">
+    <a class="brand" href="/">
+      <span class="brand-mark">S</span>
+      <span>Soldesk Market</span>
+    </a>
+    <nav class="main-nav" aria-label="주요 메뉴">
+      <a href="#products">상품목록</a>
+      <a class="nav-accent" href="/product-register.html">상품등록</a>
+      <a id="loginLink" href="/login.html">로그인</a>
+      <a id="signupLink" href="/signup.html">회원가입</a>
+      <button id="logoutButton" class="nav-button hidden" type="button">로그아웃</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero-section">
+    <div class="hero-content">
+      <p class="hero-badge">AWS EKS · Spring Boot · RDS · S3</p>
+      <h1>하나의 Spring Boot로 완성하는<br><strong>모놀리식 쇼핑몰</strong></h1>
+      <p class="hero-copy">
+        회원가입과 로그인, 상품 이미지 업로드, 상품등록, 주문까지 한 화면에서 확인하는 2차 배포 실습입니다.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="/login.html">로그인</a>
+        <a class="btn btn-light" href="/signup.html">회원가입</a>
+        <a class="btn btn-outline" href="/product-register.html">상품등록</a>
+      </div>
+      <p id="loginState" class="login-state"></p>
+    </div>
+    <div class="hero-visual" aria-hidden="true">
+      <div class="visual-card visual-card-main">
+        <div class="visual-icon">🛒</div>
+        <strong>Product Shop</strong>
+        <span>이미지는 S3 · 정보는 RDS</span>
+      </div>
+      <div class="visual-card visual-card-small card-top"><span>☁️</span><b>S3 Upload</b></div>
+      <div class="visual-card visual-card-small card-bottom"><span>☸</span><b>EKS Deploy</b></div>
+    </div>
+  </section>
+
+  <section class="feature-strip" aria-label="주요 기능">
+    <div><span>01</span><strong>회원가입 · 로그인</strong><p>JWT 기반 인증</p></div>
+    <div><span>02</span><strong>상품 이미지 업로드</strong><p>S3 Object 저장</p></div>
+    <div><span>03</span><strong>상품등록 · 주문</strong><p>RDS 데이터 관리</p></div>
+  </section>
+
+  <section id="products" class="products-section">
+    <div class="section-heading">
+      <div>
+        <p class="section-kicker">PRODUCTS</p>
+        <h2>등록된 상품</h2>
+        <p class="section-copy">상품 이미지를 확인하고 로그인 후 바로 주문할 수 있습니다.</p>
+      </div>
+      <button id="refreshButton" class="btn btn-small btn-light" type="button">새로고침</button>
+    </div>
+
+    <div id="message" class="message hidden"></div>
+    <div id="productGrid" class="product-grid" aria-live="polite"></div>
+  </section>
+</main>
+
+<footer class="footer">
+  <strong>Soldesk Market</strong>
+  <span>Monolithic 2nd Deployment Lab</span>
+</footer>
+
+<script src="/common.js"></script>
+<script src="/shop.js"></script>
+</body>
+</html>

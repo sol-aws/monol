@@ -1,0 +1,125 @@
+============================================================
+모놀리식 2차 배포 - 수정/보강 완료본
+============================================================
+
+[구조]
+- 별도 Frontend Pod/Service/ECR을 만들지 않는다.
+- Spring Boot 하나가 API와 HTML/CSS/JS를 같이 제공한다.
+- Frontend 위치: src/main/resources/static/
+- Ingress / -> ordersystem-backend-service -> Spring Boot Pod
+
+[이번 수정 핵심]
+1. SecurityConfig 수정
+   - /, /index.html, 로그인/회원가입/상품등록 HTML, CSS, JS를 permitAll
+   - 이전 GitHub main 코드처럼 .anyRequest().authenticated()에 /가 걸려 403이 발생하지 않도록 수정
+
+2. 메인 페이지 디자인 보강
+   - 로그인 / 회원가입 / 상품등록 버튼을 메인 Hero 영역에 표시
+   - 상단 Navigation에도 상품목록 / 상품등록 / 로그인 / 회원가입 표시
+   - 상품 카드형 UI와 반응형 디자인 적용
+
+3. 상품 이미지 업로드 보강
+   - Frontend 업로드 전 이미지 미리보기
+   - JPG / PNG / GIF / WEBP만 허용
+   - 이미지 최대 15MB 검사
+   - Backend에서도 동일하게 파일 형식/크기 재검사
+   - S3 Object Key는 UUID로 생성
+   - S3에는 이미지, RDS에는 imageKey 저장
+
+4. 업로드 크기 설정 정리
+   - Spring max-file-size: 15MB
+   - Spring max-request-size: 20MB
+   - Ingress nginx.ingress.kubernetes.io/proxy-body-size: "20m"
+
+5. Kubernetes Deployment
+   - image: .../order-backend:latest
+   - imagePullPolicy: Always
+   - S3_BUCKET / AWS_REGION: s3-config
+   - AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY: aws-s3-secret
+
+6. CI/CD
+   - GitHub Actions가 order-backend:latest를 Build/Push
+   - kubectl rollout restart로 새 Pod 생성
+   - 새 Pod가 latest를 다시 Pull
+   - rollout status까지 확인
+
+============================================================
+배포 전 확인
+============================================================
+
+1) ConfigMap
+kubectl get configmap s3-config -n soldesk
+
+2) Secret
+kubectl get secret aws-s3-secret -n soldesk
+
+3) Product Table
+기존 DB를 유지하므로 아래 컬럼이 이미 존재해야 한다.
+- category
+- image_key
+
+컬럼이 없다면 DB에서 1회 추가한다.
+
+ALTER TABLE product ADD COLUMN category VARCHAR(255) NULL;
+ALTER TABLE product ADD COLUMN image_key VARCHAR(500) NULL;
+
+4) Ingress
+kubectl apply -f .\k8s\k8s-ordersystem\ingress.yml -n soldesk
+
+5) Deployment
+kubectl apply -f .\k8s\k8s-ordersystem\depl_svc.yml -n soldesk
+
+============================================================
+GitHub CI/CD 사용 시
+============================================================
+
+수정된 2.ordersystem 파일을 GitHub main에 Push한다.
+
+GitHub Actions 동작:
+Git Push
+ -> Docker Build
+ -> ECR order-backend:latest Push
+ -> rollout restart
+ -> 새 Pod가 최신 latest Pull
+
+Deployment를 v2 같은 다른 태그로 수동 변경하지 않는다.
+현재 Workflow는 latest 기준이다.
+
+확인:
+kubectl get deployment ordersystem-backend -n soldesk -o jsonpath="{.spec.template.spec.containers[0].image}"
+
+정상:
+895421295243.dkr.ecr.ap-northeast-2.amazonaws.com/order-backend:latest
+
+============================================================
+테스트
+============================================================
+
+1. https://server.aws-esk.com
+   - 메인 페이지 표시
+   - 로그인 / 회원가입 / 상품등록 버튼 표시
+
+2. 회원가입
+   - 신규 계정 생성
+
+3. 로그인
+   - 가입한 계정으로 로그인
+
+4. 상품등록
+   - 이미지 선택 시 미리보기
+   - 등록 후 S3에 products/UUID.ext 객체 생성
+
+5. 메인 페이지
+   - 등록한 상품 이미지/상품명/가격/재고 표시
+
+6. 주문
+   - 로그인 상태에서 주문
+   - 재고 감소 확인
+
+============================================================
+중요
+============================================================
+- Public S3 실습 방식이므로 Bucket Policy의 s3:GetObject Public 허용이 필요하다.
+- Public Read와 Upload 권한은 별개다.
+- Backend의 S3 PutObject에는 aws-s3-secret의 AWS Credential이 필요하다.
+- application-prod.yml에는 ddl-auto:create가 없다. 재배포 시 기존 Table을 자동 삭제/생성하지 않는다.

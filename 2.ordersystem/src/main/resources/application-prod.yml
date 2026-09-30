@@ -16,8 +16,8 @@ spring:
     show_sql: true
   servlet:
     multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
+      max-file-size: 15MB
+      max-request-size: 20MB
 
 # S3 Bucket 이름과 Region은 Kubernetes ConfigMap의 환경변수로 주입한다.
 aws:

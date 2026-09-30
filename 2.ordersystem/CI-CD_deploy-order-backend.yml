@@ -1,0 +1,54 @@
+# 이 파일은 참고용입니다.
+# 실제 GitHub Actions에서는 저장소 Root의 .github/workflows/deploy-order-backend.yml 로 사용합니다.
+
+name: deploy order-backend
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout github
+        uses: actions/checkout@v4
+
+      - name: install kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: "v1.35.0"
+
+      - name: configure aws
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET }}
+          aws-region: ap-northeast-2
+
+      - name: update cluster information
+        run: aws eks update-kubeconfig --name my-cluster --region ap-northeast-2
+
+      - name: login to ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: build and push docker image to ecr
+        env:
+          REGISTRY: 895421295243.dkr.ecr.ap-northeast-2.amazonaws.com
+          REPOSITORY: order-backend
+          IMAGE_TAG: latest
+        run: |
+          docker build \
+            -t $REGISTRY/$REPOSITORY:$IMAGE_TAG \
+            -f ./2.ordersystem/Dockerfile \
+            ./2.ordersystem
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+      # Deployment는 latest를 계속 사용하고 새 Pod를 만들어 ECR의 새 latest를 Pull한다.
+      - name: restart backend deployment
+        run: |
+          kubectl rollout restart deployment/ordersystem-backend -n soldesk
+          kubectl rollout status deployment/ordersystem-backend -n soldesk --timeout=180s
+          kubectl get pods -n soldesk

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>로그인 | Soldesk Market</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="nav-shell">
+    <a class="brand" href="/"><span class="brand-mark">S</span><span>Soldesk Market</span></a>
+    <nav class="main-nav"><a href="/">상품목록</a><a href="/product-register.html">상품등록</a><a href="/signup.html">회원가입</a></nav>
+  </div>
+</header>
+<main class="form-page">
+  <section class="form-card">
+    <p class="section-kicker">SIGN IN</p>
+    <h1>로그인</h1>
+    <p class="muted">로그인하면 상품등록과 주문 기능을 사용할 수 있습니다.</p>
+    <form id="loginForm">
+      <label>이메일<input name="email" type="email" autocomplete="email" placeholder="student@example.com" required /></label>
+      <label>비밀번호<input name="password" type="password" autocomplete="current-password" required /></label>
+      <button class="form-submit" type="submit">로그인</button>
+    </form>
+    <div id="message" class="message hidden"></div>
+    <p class="form-links">계정이 없다면 <a href="/signup.html">회원가입</a></p>
+  </section>
+</main>
+<script src="/common.js"></script>
+<script src="/login.js"></script>
+</body>
+</html>

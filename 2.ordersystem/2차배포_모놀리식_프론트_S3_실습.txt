@@ -1,0 +1,165 @@
+# 2차 배포 - 모놀리식 Frontend + Public S3
+
+# 구조
+
+Browser
+  ↓
+Ingress
+  ↓
+ordersystem-backend-service
+  ↓
+Spring Boot Pod
+  ├─ Frontend 정적파일 제공
+  ├─ 회원가입 / 로그인
+  ├─ 상품등록 / 상품목록
+  ├─ 주문
+  ├─ RDS
+  └─ S3 이미지 업로드
+
+-Frontend를 별도 Pod/Service로 만들지 않는다.
+-Frontend HTML/CSS/JS는 src/main/resources/static/에 포함한다.
+-ECR Repository도 기존 order-backend 하나만 사용한다.
+
+
+# STEP 1. 기존 DB Schema 보존
+
+-application-local.yml / application-prod.yml에서 다음 설정을 사용하지 않는다.
+
+  generate-ddl: true
+  ddl-auto: create
+
+-따라서 2차 배포/Pod 재시작 시 기존 Table을 삭제/재생성하지 않는다.
+
+-기존 product Table에 아래 컬럼이 없다면 한 번만 추가한다.
+
+USE ordersystem;
+
+ALTER TABLE product ADD COLUMN category VARCHAR(255) NULL;
+ALTER TABLE product ADD COLUMN image_key VARCHAR(500) NULL;
+
+
+# STEP 2. S3 ConfigMap 생성
+
+$ACCOUNT_ID = aws sts get-caller-identity --query Account --output text
+$BUCKET = "soldesk-product-images-$ACCOUNT_ID"
+
+kubectl delete configmap s3-config -n soldesk --ignore-not-found
+
+kubectl create configmap s3-config `
+  --from-literal=S3_BUCKET=$BUCKET `
+  --from-literal=AWS_REGION=ap-northeast-2 `
+  -n soldesk
+
+kubectl get configmap s3-config -n soldesk -o yaml
+
+
+# STEP 3. S3 업로드용 Kubernetes Secret 생성
+
+-Public S3는 이미지 조회(GetObject)가 Public인 것이고 업로드(PutObject)는 AWS 인증이 필요하다.
+-실습용 IAM User의 Access Key / Secret Access Key를 사용한다.
+
+kubectl delete secret aws-s3-secret -n soldesk --ignore-not-found
+
+kubectl create secret generic aws-s3-secret `
+  --from-literal=AWS_ACCESS_KEY_ID="본인의-ACCESS-KEY" `
+  --from-literal=AWS_SECRET_ACCESS_KEY="본인의-SECRET-ACCESS-KEY" `
+  -n soldesk
+
+kubectl get secret aws-s3-secret -n soldesk
+
+
+# STEP 4. Frontend 위치
+
+src/main/resources/static/
+
+  index.html
+  login.html
+  signup.html
+  product-register.html
+  common.js
+  login.js
+  signup.js
+  product-register.js
+  shop.js
+  style.css
+
+-Spring Boot가 위 파일을 직접 제공한다.
+-별도 Frontend Dockerfile/ECR/Deployment/Service는 필요 없다.
+
+
+# STEP 5. Backend 이미지 Build / Push
+
+-기존 order-backend ECR Repository를 그대로 사용한다.
+
+aws ecr get-login-password `
+  --region ap-northeast-2 `
+  --profile my-profile |
+docker login `
+  --username AWS `
+  --password-stdin 895421295243.dkr.ecr.ap-northeast-2.amazonaws.com
+
+# 2.ordersystem 프로젝트 Root에서 실행
+
+docker build `
+  -t 895421295243.dkr.ecr.ap-northeast-2.amazonaws.com/order-backend:latest `
+  .
+
+docker push 895421295243.dkr.ecr.ap-northeast-2.amazonaws.com/order-backend:latest
+
+
+# STEP 6. Deployment / Service 적용
+
+kubectl apply `
+  -f .\k8s\k8s-ordersystem\depl_svc.yml `
+  -n soldesk
+
+kubectl get pods -n soldesk -w
+
+-새 Pod가 1/1 Running이 되는지 확인한다.
+
+
+# STEP 7. Ingress 적용
+
+-모든 / 요청은 하나의 ordersystem-backend-service로 전달된다.
+
+kubectl apply `
+  -f .\k8s\k8s-ordersystem\ingress.yml `
+  -n soldesk
+
+kubectl get ingress -n soldesk
+
+
+# STEP 8. 브라우저 접속
+
+https://server.aws-esk.com
+
+-메인 상품 페이지가 출력되어야 한다.
+
+
+# STEP 9. 기능 테스트
+
+1) 회원가입
+2) 가입한 계정으로 로그인
+3) 로그인 후 상품등록
+4) 상품 이미지 선택 후 등록
+5) S3 products/ 경로에 이미지 업로드 확인
+6) 메인 페이지에 상품 이미지/이름/가격/재고 출력 확인
+7) 로그인 사용자로 주문
+8) 주문 완료 후 재고 감소 확인
+
+
+# STEP 10. S3 이미지 확인
+
+aws s3 ls `
+  s3://$BUCKET/products/ `
+  --recursive
+
+
+# 최종 구조
+
+-1개의 Spring Boot Application
+-1개의 order-backend Docker Image
+-1개의 Backend Deployment/Service
+-Frontend는 Spring Boot static Resource
+-RDS : 회원/상품/주문 정보
+-S3 : 상품 이미지

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>상품등록 | Soldesk Market</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="nav-shell">
+    <a class="brand" href="/"><span class="brand-mark">S</span><span>Soldesk Market</span></a>
+    <nav class="main-nav">
+      <a href="/">상품목록</a>
+      <a class="nav-accent" href="/product-register.html">상품등록</a>
+      <button id="logoutButton" class="nav-button" type="button">로그아웃</button>
+    </nav>
+  </div>
+</header>
+
+<main class="form-page">
+  <section class="form-card wide">
+    <p class="section-kicker">NEW PRODUCT</p>
+    <h1>상품등록</h1>
+    <p class="muted">상품 정보는 RDS에, 이미지는 S3에 저장됩니다.</p>
+
+    <form id="productForm" enctype="multipart/form-data">
+      <label>상품명
+        <input name="name" maxlength="100" placeholder="예: 무선 키보드" required />
+      </label>
+      <label>카테고리
+        <input name="category" maxlength="50" placeholder="예: 전자제품" required />
+      </label>
+      <label>가격
+        <input name="price" type="number" min="0" step="1" placeholder="35000" required />
+      </label>
+      <label>재고수량
+        <input name="stockQuantity" type="number" min="0" step="1" placeholder="10" required />
+      </label>
+      <label>상품 이미지
+        <input id="imageInput" name="image" type="file" accept="image/jpeg,image/png,image/gif,image/webp" required />
+      </label>
+
+      <div class="image-preview-wrap">
+        <div id="imagePreview" class="image-preview">IMAGE PREVIEW</div>
+        <div class="upload-note">
+          <strong>업로드 가능 형식</strong><br />JPG · PNG · GIF · WEBP<br />최대 15MB
+        </div>
+      </div>
+
+      <button id="submitButton" class="form-submit" type="submit">상품등록</button>
+    </form>
+    <div id="message" class="message hidden"></div>
+  </section>
+</main>
+
+<script src="/common.js"></script>
+<script src="/product-register.js"></script>
+</body>
+</html>

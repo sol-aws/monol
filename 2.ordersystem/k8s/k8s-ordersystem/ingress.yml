@@ -9,6 +9,7 @@ metadata:
   namespace: soldesk
   annotations:
     cert-manager.io/cluster-issuer: my-issuer
+    # 상품 이미지 multipart 업로드 허용 크기
     nginx.ingress.kubernetes.io/proxy-body-size: "20m"
 spec:
   ingressClassName: nginx
