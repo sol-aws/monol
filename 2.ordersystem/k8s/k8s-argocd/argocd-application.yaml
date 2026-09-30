@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/sol-aws/eks-Monolithic.git
     targetRevision: main
-    path: 2.ordersystem/k8s/k8s-ordersystem
+    path: monolithic/k8s/k8s-ordersystem
   destination:
   # https://kubernetes.default.svc: 이는 Argo CD 자체가 설치된 클러스터의 내부 주소
     server: https://kubernetes.default.svc

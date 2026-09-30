@@ -2,10 +2,6 @@ spring:
   config:
     activate:
       on-profile: prod
-  redis:
-    # k8s의 redis 서비스명을 지정
-    host: redis-service
-    port: 6379
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     # DB_HOST는 k8s의 Secret 내의 Key이름과 일치
