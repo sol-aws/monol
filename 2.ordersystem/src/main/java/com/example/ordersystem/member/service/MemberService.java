@@ -35,7 +35,7 @@ public class MemberService {
 //        email존재여부
         Optional<Member> optionalMember = memberRepository.findByEmail(dto.getEmail());
         if(!optionalMember.isPresent()){
-            check = false;
+            throw new IllegalArgumentException("email 또는 비밀번호가 일치하지 않습니다.");
         }
 //        password일치 여부
         if(!passwordEncoder.matches(dto.getPassword(), optionalMember.get().getPassword())){

@@ -4,6 +4,7 @@ package com.example.ordersystem.common.config;
 import com.example.ordersystem.common.auth.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -36,14 +37,20 @@ public class SecurityConfig {
                  .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 //                 token을 검증하고, token을 통해 Authentication객체생성
                  .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
-//                 .authenticated() : 모든요청에대해서 Authentication객체가 생성되기를 요구
-                 .authorizeHttpRequests(a -> a.requestMatchers("/member/create", "/member/doLogin", "/member/refresh-token", "/health").permitAll().anyRequest().authenticated())
+//                 회원가입/로그인/상품목록은 로그인 없이 접근 가능
+//                 상품등록과 주문은 JWT 인증이 필요
+                 .authorizeHttpRequests(a -> a
+                         .requestMatchers("/member/create", "/member/doLogin", "/member/refresh-token", "/health").permitAll()
+                         .requestMatchers(HttpMethod.GET, "/product/list").permitAll()
+                         .anyRequest().authenticated())
                  .build();
     }
 
     private CorsConfigurationSource corsConfiguration(){
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+        // 실제 배포에서는 Frontend와 Backend를 같은 Ingress 도메인으로 서비스한다.
+        // localhost는 개발 중 직접 Frontend를 실행할 때 사용한다.
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:*", "https://server.aws-esk.com", "http://server.aws-esk.com"));
         configuration.setAllowedMethods(Arrays.asList("*")); // 모든 HTTP(get, post 등) 메서드 허용
         configuration.setAllowedHeaders(Arrays.asList("*")); // 모든 헤더 허용
         configuration.setAllowCredentials(true); // 자격 증명 허용
@@ -56,6 +63,4 @@ public class SecurityConfig {
     public PasswordEncoder makePassword(){
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
-
-
 }

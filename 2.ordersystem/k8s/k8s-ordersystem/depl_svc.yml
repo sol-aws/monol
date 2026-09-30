@@ -15,6 +15,8 @@ spec:
       labels:
         app: ordersystem-backend
     spec:
+      # S3 접근 권한이 연결된 Kubernetes ServiceAccount(IRSA)를 사용
+      serviceAccountName: ordersystem-backend-sa
       containers:
         - name: ordersystem-backend
           image: 895421295243.dkr.ecr.ap-northeast-2.amazonaws.com/order-backend:latest
@@ -41,6 +43,17 @@ spec:
                 secretKeyRef:
                   name: my-app-secrets
                   key: DB_PW
+            # S3 관련 값은 비밀번호가 아니므로 Secret이 아닌 ConfigMap에서 가져온다.
+            - name: S3_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: ordersystem-config
+                  key: S3_BUCKET
+            - name: AWS_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: ordersystem-config
+                  key: AWS_REGION
           # 컨테이너 상태 확인을 통해 롤링업데이트 최적화
           readinessProbe:
             httpGet:

@@ -14,11 +14,15 @@ public class ProductRegisterDto {
     private String category;
     private int price;
     private int stockQuantity;
-    public Product toEntity(Member member){
+
+    public Product toEntity(Member member, String imageKey){
         return Product.builder()
-                .name(this.name).price(this.price).stockQuantity(this.stockQuantity)
+                .name(this.name)
+                .category(this.category)
+                .price(this.price)
+                .stockQuantity(this.stockQuantity)
+                .imageKey(imageKey)
                 .member(member)
                 .build();
     }
-
 }

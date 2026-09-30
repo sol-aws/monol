@@ -1,7 +1,6 @@
-
-# ingress-controller 설치 명령어
-# kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.1/deploy/static/provider/aws/deploy.yaml
-
+# 같은 도메인에서 Frontend와 Backend API를 함께 서비스한다.
+# /member, /product, /ordering, /health 요청은 Spring Backend로 전달하고
+# 나머지 / 요청은 Frontend(Nginx)로 전달한다.
 
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -21,10 +20,38 @@ spec:
   - host: server.aws-esk.com
     http:
       paths:
-      - path: / #모든 url요청을 service로 라우팅
+      - path: /member
         pathType: Prefix
         backend:
           service:
             name: ordersystem-backend-service
+            port:
+              number: 80
+      - path: /product
+        pathType: Prefix
+        backend:
+          service:
+            name: ordersystem-backend-service
+            port:
+              number: 80
+      - path: /ordering
+        pathType: Prefix
+        backend:
+          service:
+            name: ordersystem-backend-service
+            port:
+              number: 80
+      - path: /health
+        pathType: Prefix
+        backend:
+          service:
+            name: ordersystem-backend-service
+            port:
+              number: 80
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ordersystem-frontend-service
             port:
               number: 80

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ordersystem-config
+  namespace: soldesk
+data:
+  # 학생이 생성한 실제 S3 Bucket 이름으로 변경
+  S3_BUCKET: "CHANGE_ME"
+  AWS_REGION: "ap-northeast-2"
