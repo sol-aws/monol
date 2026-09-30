@@ -4,7 +4,7 @@ metadata:
   name: ordersystem-backend
   namespace: soldesk
 spec:
-  # Deployment나 StatefulSet이 유지할 "옛날 ReplicaSet"의 수를 제한하는 옵션. 자원공간의 낭비 방지 및 관리의 편의성
+  # Deployment나 StatefulSet이 유지할 옛날 ReplicaSet의 수를 제한한다.
   revisionHistoryLimit: 2
   replicas: 3
   selector:
@@ -15,24 +15,21 @@ spec:
       labels:
         app: ordersystem-backend
     spec:
-      # S3 접근 권한이 연결된 Kubernetes ServiceAccount(IRSA)를 사용
-      serviceAccountName: ordersystem-backend-sa
       containers:
         - name: ordersystem-backend
           image: 895421295243.dkr.ecr.ap-northeast-2.amazonaws.com/order-backend:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           resources:
-            # 컨테이너가 사용할수 있는 리소스의 최대치
             limits:
               cpu: "1"
               memory: "500Mi"
-            # 컨테이너가 시작될떄 보장받아야 하는 최소 자원 (Pod 스케줄링 시 반드시 확보돼야 하는 최소 자원)
             requests:
               cpu: "0.5"
               memory: "250Mi"
           env:
-            # name값과 application-prod.yml의 ${변수} 의 변수명과 일치해야함
+            # RDS 설정은 기존 Kubernetes Secret 사용
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
@@ -43,26 +40,36 @@ spec:
                 secretKeyRef:
                   name: my-app-secrets
                   key: DB_PW
-            # S3 관련 값은 비밀번호가 아니므로 Secret이 아닌 ConfigMap에서 가져온다.
+
+            # S3 Bucket 이름과 Region은 ConfigMap에서 가져온다.
             - name: S3_BUCKET
               valueFrom:
                 configMapKeyRef:
-                  name: ordersystem-config
+                  name: s3-config
                   key: S3_BUCKET
             - name: AWS_REGION
               valueFrom:
                 configMapKeyRef:
-                  name: ordersystem-config
+                  name: s3-config
                   key: AWS_REGION
-          # 컨테이너 상태 확인을 통해 롤링업데이트 최적화
+
+            # Public S3라도 업로드(PutObject)는 AWS 인증이 필요하다.
+            # 실습에서는 Access Key를 Kubernetes Secret으로 주입한다.
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: aws-s3-secret
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws-s3-secret
+                  key: AWS_SECRET_ACCESS_KEY
           readinessProbe:
             httpGet:
-              # healthcheck 경로
               path: /health
               port: 8080
-            # 컨테이너 시작 후 지연
             initialDelaySeconds: 15
-            # 확인 반복 주기
             periodSeconds: 10
 
 ---

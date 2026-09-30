@@ -1,6 +1,6 @@
-# 같은 도메인에서 Frontend와 Backend API를 함께 서비스한다.
-# /member, /product, /ordering, /health 요청은 Spring Backend로 전달하고
-# 나머지 / 요청은 Frontend(Nginx)로 전달한다.
+# 모놀리식 2차 배포
+# Frontend HTML/CSS/JS도 Spring Boot 이미지 안에 포함되므로 별도 Frontend Pod/Service가 필요 없다.
+# 모든 요청을 하나의 ordersystem-backend-service로 전달한다.
 
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -8,50 +8,21 @@ metadata:
   name: order-backend-ingress
   namespace: soldesk
   annotations:
-    kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: my-issuer
 spec:
+  ingressClassName: nginx
   tls:
-  - hosts:
-    - "server.aws-esk.com"
-    # https설정시에 TLS 인증서가 저장된 certificate의 Secret의 이름(spec.secretName)을 지정
-    secretName: server-aws-esk-com-tls
+    - hosts:
+        - server.aws-esk.com
+      secretName: server-aws-esk-com-tls
   rules:
-  - host: server.aws-esk.com
-    http:
-      paths:
-      - path: /member
-        pathType: Prefix
-        backend:
-          service:
-            name: ordersystem-backend-service
-            port:
-              number: 80
-      - path: /product
-        pathType: Prefix
-        backend:
-          service:
-            name: ordersystem-backend-service
-            port:
-              number: 80
-      - path: /ordering
-        pathType: Prefix
-        backend:
-          service:
-            name: ordersystem-backend-service
-            port:
-              number: 80
-      - path: /health
-        pathType: Prefix
-        backend:
-          service:
-            name: ordersystem-backend-service
-            port:
-              number: 80
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: ordersystem-frontend-service
-            port:
-              number: 80
+    - host: server.aws-esk.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ordersystem-backend-service
+                port:
+                  number: 80
