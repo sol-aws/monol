@@ -18,7 +18,7 @@ Spring Boot Pod
 
 -Frontend를 별도 Pod/Service로 만들지 않는다.
 -Frontend HTML/CSS/JS는 src/main/resources/static/에 포함한다.
--ECR Repository도 기존 order-backend 하나만 사용한다.
+-ECR Repository도 기존 order-backend 하나만  사용한다.
 
 
 # STEP 1. 기존 DB Schema 보존
