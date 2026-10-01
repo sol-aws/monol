@@ -3,7 +3,11 @@ name: deploy order order-backend
 on:
   push:
     branches:
+<<<<<<< HEAD
       - main
+=======
+      - dev
+>>>>>>> 60e64df (ci/cd auto-12)
 
 jobs:
   build-and-deploy:
@@ -11,18 +15,30 @@ jobs:
     steps:
       - name: checkout github
         uses: actions/checkout@v2
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> 60e64df (ci/cd auto-12)
       - name: install kubectl
         uses: azure/setup-kubectl@v3
         with:
           version: "v1.25.9"
         id: install
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> 60e64df (ci/cd auto-12)
       - name: configure aws
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_KEY }}
+<<<<<<< HEAD
           aws-secret-access-key: ${{ secrets.AWS_SECRET }}
+=======
+          aws-secret-access-key:  ${{ secrets.AWS_SECRET }}
+>>>>>>> 60e64df (ci/cd auto-12)
           aws-region: ap-northeast-2
 
       - name: update cluster infomation
@@ -40,6 +56,7 @@ jobs:
         run: |
           docker build \
           -t $REGISTRY/$REPOSITORY:$IMAGE_TAG \
+<<<<<<< HEAD
           -f ./2.ordersystem/Dockerfile ./2.ordersystem
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
@@ -61,3 +78,12 @@ jobs:
 
           kubectl get pods -n soldesk
         # kubectl apply -f ./2.ordersystem/k8s/k8s-ordersystem/depl_svc.yml
+=======
+          -f ./monolithic/Dockerfile ./monolithic
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+      - name: eks kubectl apply
+        run: |
+          kubectl rollout restart deployment ordersystem-backend -n soldesk
+        # kubectl apply -f ./monolithic/k8s/k8s-ordersystem/depl_svc.yml
+>>>>>>> 60e64df (ci/cd auto-12)
